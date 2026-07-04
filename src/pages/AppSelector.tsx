@@ -4,6 +4,7 @@ import { APPS, type AppKind } from "@/lib/apps";
 import { api } from "@/lib/api";
 import { formatInstallDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { SessionHeatmap } from "@/components/SessionHeatmap";
 
 export function AppSelector() {
   const nav = useNavigate();
@@ -29,28 +30,32 @@ export function AppSelector() {
         )}
       </header>
 
-      <div className="flex-1 flex flex-col justify-center gap-4">
-        {(Object.keys(APPS) as AppKind[]).map((key) => {
+      <div className="flex-1 flex flex-col justify-center gap-10">
+        <div className="flex flex-col gap-4">
+          {(Object.keys(APPS) as AppKind[]).map((key) => {
           const app = APPS[key];
           const Icon = app.icon;
-          return (
-            <Button
-              key={key}
-              onClick={() => nav(app.path)}
-              size="xl"
-              variant={
-                key === "running"
-                  ? "primary"
-                  : key === "biking"
-                    ? "secondary"
-                    : "outline"
-              }
-              className="w-full font-display text-xl"
-            >
-              <Icon className="h-6 w-6" /> {app.label}
-            </Button>
-          );
-        })}
+            return (
+              <Button
+                key={key}
+                onClick={() => nav(app.path)}
+                size="xl"
+                variant={
+                  key === "running"
+                    ? "primary"
+                    : key === "biking"
+                      ? "secondary"
+                      : "outline"
+                }
+                className="w-full font-display text-xl"
+              >
+                <Icon className="h-6 w-6" /> {app.label}
+              </Button>
+            );
+          })}
+        </div>
+
+        <SessionHeatmap />
       </div>
     </>
   );

@@ -7,7 +7,12 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:releases.slint.dev)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Skill(dataviz)",
+      "Bash(node /private/tmp/claude-501/bundled-skills/2.1.199/5037712f87b5c258998e1c362b2a4986/dataviz/scripts/validate_palette.js \"#e0e0e0,#ffc300,#5a189a\" --mode light)",
+      "Bash(npm init *)",
+      "Bash(node shot.mjs landing.png)",
+      "Bash(./gradlew help *)"
     ]
   }
 }
