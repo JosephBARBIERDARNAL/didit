@@ -326,8 +326,12 @@ pub struct GymHistoryBucket {
 }
 
 #[tauri::command]
-pub fn create_gym_session(db: State<Db>, exercises: Vec<String>) -> Result<i64, CmdError> {
-    Ok(db.create_gym_session(now_ms(), &exercises)?)
+pub fn create_gym_session(
+    db: State<Db>,
+    exercises: Vec<String>,
+    logged_at_ms: Option<i64>,
+) -> Result<i64, CmdError> {
+    Ok(db.create_gym_session(logged_at_ms.unwrap_or_else(now_ms), &exercises)?)
 }
 
 #[tauri::command]

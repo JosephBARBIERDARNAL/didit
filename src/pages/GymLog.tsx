@@ -6,9 +6,17 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_EXERCISES } from "@/lib/gymExercises";
 import { cn } from "@/lib/cn";
 
+function todayStr() {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
 export function GymLog() {
   const nav = useNavigate();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [date, setDate] = useState(todayStr);
   const [saving, setSaving] = useState(false);
 
   function toggle(name: string) {
@@ -24,7 +32,13 @@ export function GymLog() {
     if (saving || selected.size === 0) return;
     setSaving(true);
     try {
-      await api.createGymSession(Array.from(selected));
+      // Keep the current time when logging for today; use midday for past days
+      // so the entry stays on the picked date across timezone shifts.
+      const loggedAtMs =
+        !date || date === todayStr()
+          ? Date.now()
+          : new Date(`${date}T12:00:00`).getTime();
+      await api.createGymSession(Array.from(selected), loggedAtMs);
       nav("/gym", { replace: true });
     } catch (e) {
       console.error(e);
@@ -44,6 +58,17 @@ export function GymLog() {
         <h1 className="font-display text-lg">Log Workout</h1>
         <span className="w-16" />
       </header>
+
+      <label className="mb-5 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+        <span className="text-sm text-muted-foreground">Date</span>
+        <input
+          type="date"
+          value={date}
+          max={todayStr()}
+          onChange={(e) => setDate(e.target.value)}
+          className="bg-transparent text-right font-medium text-foreground outline-none"
+        />
+      </label>
 
       <ul className="space-y-2 mb-6">
         {DEFAULT_EXERCISES.map((name) => {

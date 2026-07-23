@@ -48,8 +48,12 @@ install:
      if [ ! -x "$ADB" ]; then ADB="$(command -v adb || true)"; fi; \
      if [ ! -f "$APK" ]; then echo "APK not found: $APK"; exit 1; fi; \
      if [ -z "$ADB" ]; then echo "adb not found. Add Android platform-tools to PATH or set ADB=/path/to/adb."; exit 1; fi; \
-     echo "Installing $APK …"; \
-     "$ADB" install -r "$APK"
+     SERIAL="${ADB_SERIAL:-}"; \
+     if [ -z "$SERIAL" ]; then SERIAL="$("$ADB" devices -l | awk '$2 == "device" && $3 ~ /^usb:/ {print $1; exit}')"; fi; \
+     if [ -z "$SERIAL" ]; then SERIAL="$("$ADB" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"; fi; \
+     if [ -z "$SERIAL" ]; then echo "No device found. Connect a phone or set ADB_SERIAL."; exit 1; fi; \
+     echo "Installing $APK on $SERIAL …"; \
+     "$ADB" -s "$SERIAL" install -r "$APK"
 
 # Generate a self-signed release keystore at ~/.didit/release.keystore.
 

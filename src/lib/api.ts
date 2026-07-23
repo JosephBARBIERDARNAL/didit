@@ -102,8 +102,8 @@ export const api = {
   deleteSession: (id: number) => invoke<void>("delete_session", { id }),
   devPushPoint: (lat: number, lng: number, altitude_m?: number, accuracy_m?: number) =>
     invoke<void>("dev_push_point", { lat, lng, altitudeM: altitude_m, accuracyM: accuracy_m }),
-  createGymSession: (exercises: string[]) =>
-    invoke<number>("create_gym_session", { exercises }),
+  createGymSession: (exercises: string[], loggedAtMs?: number) =>
+    invoke<number>("create_gym_session", { exercises, loggedAtMs }),
   listRecentGym: (limit: number) => invoke<GymSessionRow[]>("list_recent_gym", { limit }),
   listGymRange: (range: Range, anchorMs: number) =>
     invoke<GymHistoryBucket>("list_gym_range", { range, anchorMs }),
