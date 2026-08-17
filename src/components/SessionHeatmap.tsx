@@ -21,20 +21,6 @@ const SPORT_COLORS: Record<Sport, string> = {
   gym: "hsl(var(--sport-gym))",
 };
 
-function cellBackground(activities: DayActivities | undefined): string {
-  const sports = SPORT_ORDER.filter((sport) => (activities?.[sport] ?? 0) > 0);
-  if (sports.length === 0) return "hsl(var(--input))";
-  if (sports.length === 1) return SPORT_COLORS[sports[0]];
-
-  const step = 100 / sports.length;
-  return `linear-gradient(to bottom, ${sports
-    .map(
-      (sport, index) =>
-        `${SPORT_COLORS[sport]} ${index * step}% ${(index + 1) * step}%`,
-    )
-    .join(", ")})`;
-}
-
 function describeActivities(activities: DayActivities | undefined): string {
   const descriptions = SPORT_ORDER.flatMap((sport) => {
     const count = activities?.[sport] ?? 0;
@@ -139,6 +125,10 @@ export function SessionHeatmap() {
           const dayKey = format(day, DAY_KEY);
           const dayActivities = activities.get(dayKey);
           const isToday = dayKey === format(today, DAY_KEY);
+          const sports = SPORT_ORDER.filter(
+            (sport) => (dayActivities?.[sport] ?? 0) > 0,
+          );
+          const hasActivities = sports.length > 0;
           const description = describeActivities(dayActivities);
           return (
             <div
@@ -146,12 +136,28 @@ export function SessionHeatmap() {
               title={`${format(day, "MMM d")} — ${description}`}
               aria-label={`${format(day, "MMM d")} — ${description}`}
               className={cn(
-                "aspect-square rounded-[3px] border",
-                isToday ? "border-black" : "border-black/[0.06]",
-                !dayActivities && "bg-input",
+                "relative aspect-square overflow-hidden rounded-[3px] border",
+                isToday
+                  ? "border-black"
+                  : hasActivities
+                    ? "border-transparent"
+                    : "border-black/[0.06] bg-input",
               )}
-              style={{ background: cellBackground(dayActivities) }}
-            />
+            >
+              {hasActivities && (
+                <div
+                  className="absolute inset-0 grid"
+                  style={{
+                    gridTemplateRows: `repeat(${sports.length}, minmax(0, 1fr))`,
+                  }}
+                  aria-hidden="true"
+                >
+                  {sports.map((sport) => (
+                    <span key={sport} style={{ backgroundColor: SPORT_COLORS[sport] }} />
+                  ))}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
