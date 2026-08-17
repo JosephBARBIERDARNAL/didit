@@ -6,14 +6,48 @@ import { cn } from "@/lib/cn";
 const WEEKS = 16;
 const DAY_KEY = "yyyy-MM-dd";
 
-function cellColor(count: number): string {
-  if (count >= 2) return "bg-brand";
-  if (count === 1) return "bg-accent";
-  return "bg-input";
+type Sport = "running" | "biking" | "gym";
+type DayActivities = Partial<Record<Sport, number>>;
+
+const SPORT_ORDER: Sport[] = ["running", "biking", "gym"];
+const SPORT_LABELS: Record<Sport, string> = {
+  running: "Running",
+  biking: "Biking",
+  gym: "Gym",
+};
+const SPORT_COLORS: Record<Sport, string> = {
+  running: "hsl(var(--accent))",
+  biking: "hsl(var(--brand))",
+  gym: "hsl(var(--sport-gym))",
+};
+
+function cellBackground(activities: DayActivities | undefined): string {
+  const sports = SPORT_ORDER.filter((sport) => (activities?.[sport] ?? 0) > 0);
+  if (sports.length === 0) return "hsl(var(--input))";
+  if (sports.length === 1) return SPORT_COLORS[sports[0]];
+
+  const step = 100 / sports.length;
+  return `linear-gradient(to bottom, ${sports
+    .map(
+      (sport, index) =>
+        `${SPORT_COLORS[sport]} ${index * step}% ${(index + 1) * step}%`,
+    )
+    .join(", ")})`;
+}
+
+function describeActivities(activities: DayActivities | undefined): string {
+  const descriptions = SPORT_ORDER.flatMap((sport) => {
+    const count = activities?.[sport] ?? 0;
+    if (count === 0) return [];
+    return [count === 1 ? SPORT_LABELS[sport] : `${SPORT_LABELS[sport]} (${count})`];
+  });
+  return descriptions.length > 0 ? descriptions.join(", ") : "No training";
 }
 
 export function SessionHeatmap() {
-  const [counts, setCounts] = useState<Map<string, number>>(new Map());
+  const [activities, setActivities] = useState<Map<string, DayActivities>>(
+    new Map(),
+  );
 
   const { gridStart, today } = useMemo(() => {
     const now = new Date();
@@ -28,31 +62,43 @@ export function SessionHeatmap() {
 
   useEffect(() => {
     const years = new Set([gridStart.getFullYear(), today.getFullYear()]);
-    const fetches: Promise<number[]>[] = [];
+    const fetches: Promise<{ kind: Sport; timestamps: number[] }>[] = [];
     for (const year of years) {
       const anchorMs = new Date(year, 6, 1).getTime();
       fetches.push(
         api
           .listRange("year", anchorMs, "running")
-          .then((b) => b.sessions.map((s) => s.started_at_ms)),
+          .then((bucket) => ({
+            kind: "running",
+            timestamps: bucket.sessions.map((session) => session.started_at_ms),
+          })),
         api
           .listRange("year", anchorMs, "biking")
-          .then((b) => b.sessions.map((s) => s.started_at_ms)),
+          .then((bucket) => ({
+            kind: "biking",
+            timestamps: bucket.sessions.map((session) => session.started_at_ms),
+          })),
         api
           .listGymRange("year", anchorMs)
-          .then((b) => b.sessions.map((s) => s.logged_at_ms)),
+          .then((bucket) => ({
+            kind: "gym",
+            timestamps: bucket.sessions.map((session) => session.logged_at_ms),
+          })),
       );
     }
+
     Promise.all(fetches)
       .then((results) => {
-        const map = new Map<string, number>();
-        for (const timestamps of results) {
+        const map = new Map<string, DayActivities>();
+        for (const { kind, timestamps } of results) {
           for (const ms of timestamps) {
             const key = format(new Date(ms), DAY_KEY);
-            map.set(key, (map.get(key) ?? 0) + 1);
+            const day = map.get(key) ?? {};
+            day[kind] = (day[kind] ?? 0) + 1;
+            map.set(key, day);
           }
         }
-        setCounts(map);
+        setActivities(map);
       })
       .catch(console.error);
   }, [gridStart, today]);
@@ -91,41 +137,43 @@ export function SessionHeatmap() {
             return <div key={i} className="aspect-square" />;
           }
           const dayKey = format(day, DAY_KEY);
-          const count = counts.get(dayKey) ?? 0;
+          const dayActivities = activities.get(dayKey);
           const isToday = dayKey === format(today, DAY_KEY);
+          const description = describeActivities(dayActivities);
           return (
             <div
               key={i}
-              title={`${format(day, "MMM d")} — ${count} session${count === 1 ? "" : "s"}`}
+              title={`${format(day, "MMM d")} — ${description}`}
+              aria-label={`${format(day, "MMM d")} — ${description}`}
               className={cn(
                 "aspect-square rounded-[3px] border",
                 isToday ? "border-black" : "border-black/[0.06]",
-                cellColor(count),
+                !dayActivities && "bg-input",
               )}
+              style={{ background: cellBackground(dayActivities) }}
             />
           );
         })}
       </div>
 
-      <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
-        {(
-          [
-            ["bg-input", "0"],
-            ["bg-accent", "1"],
-            ["bg-brand", "2"],
-          ] as const
-        ).map(([bg, label]) => (
-          <span key={label} className="flex items-center gap-1">
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+        {SPORT_ORDER.map((sport) => (
+          <span key={sport} className="flex items-center gap-1">
             <span
-              className={cn(
-                "h-2.5 w-2.5 rounded-[3px] border border-black/[0.2]",
-                bg,
-              )}
+              className="h-2.5 w-2.5 rounded-[3px] border border-black/[0.2]"
+              style={{ background: SPORT_COLORS[sport] }}
             />
-            {label}
+            {SPORT_LABELS[sport]}
           </span>
         ))}
+        <span className="flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded-[3px] border border-black/[0.2] bg-input" />
+          None
+        </span>
       </div>
+      <p className="mt-1 text-right text-[10px] text-muted-foreground">
+        Mixed days use color bands.
+      </p>
     </div>
   );
 }

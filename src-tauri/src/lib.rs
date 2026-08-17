@@ -58,6 +58,8 @@ pub fn run() {
             commands::stop_session,
             commands::list_recent,
             commands::list_range,
+            commands::training_summary,
+            commands::export_data,
             commands::get_session,
             commands::delete_session,
             commands::dev_push_point,
@@ -66,6 +68,9 @@ pub fn run() {
             commands::list_gym_range,
             commands::get_gym_session,
             commands::delete_gym_session,
+            commands::create_weight_entry,
+            commands::list_weight_entries,
+            commands::delete_weight_entry,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

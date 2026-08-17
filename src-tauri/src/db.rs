@@ -91,6 +91,13 @@ CREATE TABLE IF NOT EXISTS gym_session_exercises (
     exercise_name  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_gym_exercises_session ON gym_session_exercises(session_id);
+
+CREATE TABLE IF NOT EXISTS weight_entries (
+    id            INTEGER PRIMARY KEY,
+    logged_at_ms  INTEGER NOT NULL,
+    weight_kg     REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_weight_entries_logged_at ON weight_entries(logged_at_ms);
 "#;
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -120,6 +127,20 @@ pub struct GymSessionRow {
     pub id: i64,
     pub logged_at_ms: i64,
     pub exercises: Vec<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct WeightEntry {
+    pub id: i64,
+    pub logged_at_ms: i64,
+    pub weight_kg: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ExportSnapshot {
+    pub sessions: Vec<SessionRow>,
+    pub gym_sessions: Vec<GymSessionRow>,
+    pub weight_entries: Vec<WeightEntry>,
 }
 
 impl Db {
@@ -429,6 +450,51 @@ impl Db {
         conn.execute("DELETE FROM gym_sessions WHERE id = ?1", params![id])?;
         Ok(())
     }
+
+    pub fn create_weight_entry(&self, logged_at_ms: i64, weight_kg: f64) -> Result<i64, DbError> {
+        let conn = self.0.lock().unwrap();
+        conn.execute(
+            "INSERT INTO weight_entries (logged_at_ms, weight_kg) VALUES (?1, ?2)",
+            params![logged_at_ms, weight_kg],
+        )?;
+        Ok(conn.last_insert_rowid())
+    }
+
+    pub fn list_weight_entries(
+        &self,
+        from_ms: i64,
+        to_ms: i64,
+    ) -> Result<Vec<WeightEntry>, DbError> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT id, logged_at_ms, weight_kg FROM weight_entries
+             WHERE logged_at_ms >= ?1 AND logged_at_ms <= ?2
+             ORDER BY logged_at_ms DESC, id DESC",
+        )?;
+        let entries = stmt
+            .query_map(params![from_ms, to_ms], row_to_weight_entry)?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(DbError::from);
+        entries
+    }
+
+    pub fn delete_weight_entry(&self, id: i64) -> Result<(), DbError> {
+        let conn = self.0.lock().unwrap();
+        conn.execute("DELETE FROM weight_entries WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+
+    pub fn export_snapshot(&self) -> Result<ExportSnapshot, DbError> {
+        let mut sessions = self.list_sessions_in_range(i64::MIN, i64::MAX, "running")?;
+        sessions.extend(self.list_sessions_in_range(i64::MIN, i64::MAX, "biking")?);
+        sessions.sort_by(|a, b| b.started_at_ms.cmp(&a.started_at_ms));
+
+        Ok(ExportSnapshot {
+            sessions,
+            gym_sessions: self.list_gym_sessions_in_range(i64::MIN, i64::MAX)?,
+            weight_entries: self.list_weight_entries(i64::MIN, i64::MAX)?,
+        })
+    }
 }
 
 fn row_to_gym_session(r: &rusqlite::Row) -> rusqlite::Result<GymSessionRow> {
@@ -450,4 +516,35 @@ fn attach_gym_exercises(
         .query_map(params![session.id], |r| r.get(0))?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(session)
+}
+
+fn row_to_weight_entry(r: &rusqlite::Row) -> rusqlite::Result<WeightEntry> {
+    Ok(WeightEntry {
+        id: r.get(0)?,
+        logged_at_ms: r.get(1)?,
+        weight_kg: r.get(2)?,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn weight_entries_keep_same_day_measurements_and_can_be_deleted() {
+        let db = open(Path::new(":memory:")).unwrap();
+        let first_id = db.create_weight_entry(1_000, 72.5).unwrap();
+        let second_id = db.create_weight_entry(2_000, 72.2).unwrap();
+
+        let entries = db.list_weight_entries(0, 3_000).unwrap();
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].id, second_id);
+        assert_eq!(entries[0].weight_kg, 72.2);
+        assert_eq!(entries[1].id, first_id);
+
+        db.delete_weight_entry(first_id).unwrap();
+        let remaining = db.list_weight_entries(0, 3_000).unwrap();
+        assert_eq!(remaining.len(), 1);
+        assert_eq!(remaining[0].id, second_id);
+    }
 }

@@ -1,5 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { AppSelector } from "@/pages/AppSelector";
+import { SportHome } from "@/pages/SportHome";
+import { WeightHome } from "@/pages/WeightHome";
 import { ActivityHome } from "@/pages/ActivityHome";
 import { ActivityTrack } from "@/pages/ActivityTrack";
 import { ActivitySummary } from "@/pages/ActivitySummary";
@@ -15,6 +17,8 @@ export default function App() {
       <div className="w-full max-w-[440px] min-h-screen px-5 py-6 flex flex-col">
         <Routes>
           <Route path="/" element={<AppSelector />} />
+          <Route path="/sport" element={<SportHome />} />
+          <Route path="/weight" element={<WeightHome />} />
           <Route path="/:activity" element={<ActivityHome />} />
           <Route path="/:activity/track" element={<ActivityTrack />} />
           <Route path="/:activity/summary/:id" element={<ActivitySummary />} />

@@ -82,6 +82,18 @@ export interface GymHistoryBucket {
   session_count: number;
 }
 
+export interface WeightEntry {
+  id: number;
+  logged_at_ms: number;
+  weight_kg: number;
+}
+
+export interface TrainingSummary {
+  running_duration_ms: number;
+  biking_duration_ms: number;
+  gym_session_count: number;
+}
+
 export const api = {
   currentState: () => invoke<SessionState>("current_state"),
   installationUpdatedAtMs: () => invoke<number | null>("installation_updated_at_ms"),
@@ -98,6 +110,8 @@ export const api = {
     invoke<SessionRow[]>("list_recent", { limit, activity }),
   listRange: (range: Range, anchorMs: number, activity: ActivityKind) =>
     invoke<HistoryBucket>("list_range", { range, anchorMs, activity }),
+  trainingSummary: () => invoke<TrainingSummary>("training_summary"),
+  exportData: (path: string) => invoke<void>("export_data", { path }),
   getSession: (id: number) => invoke<SessionDetail | null>("get_session", { id }),
   deleteSession: (id: number) => invoke<void>("delete_session", { id }),
   devPushPoint: (lat: number, lng: number, altitude_m?: number, accuracy_m?: number) =>
@@ -109,6 +123,11 @@ export const api = {
     invoke<GymHistoryBucket>("list_gym_range", { range, anchorMs }),
   getGymSession: (id: number) => invoke<GymSessionRow | null>("get_gym_session", { id }),
   deleteGymSession: (id: number) => invoke<void>("delete_gym_session", { id }),
+  createWeightEntry: (weightKg: number, loggedAtMs?: number) =>
+    invoke<number>("create_weight_entry", { weightKg, loggedAtMs }),
+  listWeightEntries: (fromMs: number) =>
+    invoke<WeightEntry[]>("list_weight_entries", { fromMs }),
+  deleteWeightEntry: (id: number) => invoke<void>("delete_weight_entry", { id }),
 };
 
 export function onMetrics(handler: (m: LiveMetrics) => void): Promise<UnlistenFn> {

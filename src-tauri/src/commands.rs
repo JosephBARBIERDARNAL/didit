@@ -4,7 +4,7 @@ use chrono::{Datelike, Local, TimeZone};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 
-use crate::db::{Db, GymSessionRow, SessionDetail, SessionRow};
+use crate::db::{Db, ExportSnapshot, GymSessionRow, SessionDetail, SessionRow, WeightEntry};
 use crate::location;
 use crate::metrics::{finalize, SessionTotals, TrackPoint};
 use crate::session::{ActiveSession, ActivityKind, LiveMetrics, SessionState, SessionStore};
@@ -19,6 +19,10 @@ pub enum CmdError {
     Db(#[from] crate::db::DbError),
     #[error("invalid state: {0}")]
     State(&'static str),
+    #[error("invalid input: {0}")]
+    InvalidInput(&'static str),
+    #[error("export failed: {0}")]
+    Export(String),
 }
 
 impl Serialize for CmdError {
@@ -214,6 +218,81 @@ pub struct HistoryBucket {
     pub session_count: u32,
 }
 
+#[derive(Debug, Serialize)]
+pub struct TrainingSummary {
+    pub running_duration_ms: i64,
+    pub biking_duration_ms: i64,
+    pub gym_session_count: u32,
+}
+
+fn last_thirty_day_bounds() -> (i64, i64) {
+    let today = Local::now().date_naive();
+    let from_date = today - chrono::Duration::days(29);
+    let to_date = today + chrono::Duration::days(1);
+    let from = Local
+        .from_local_datetime(&from_date.and_hms_opt(0, 0, 0).unwrap())
+        .single()
+        .unwrap();
+    let to = Local
+        .from_local_datetime(&to_date.and_hms_opt(0, 0, 0).unwrap())
+        .single()
+        .unwrap();
+    (from.timestamp_millis(), to.timestamp_millis())
+}
+
+#[tauri::command]
+pub fn training_summary(db: State<Db>) -> Result<TrainingSummary, CmdError> {
+    let (from_ms, to_ms) = last_thirty_day_bounds();
+    let running = db.list_sessions_in_range(from_ms, to_ms, "running")?;
+    let biking = db.list_sessions_in_range(from_ms, to_ms, "biking")?;
+    let gym = db.list_gym_sessions_in_range(from_ms, to_ms)?;
+
+    Ok(TrainingSummary {
+        running_duration_ms: running
+            .iter()
+            .filter_map(|session| session.moving_duration_ms)
+            .sum(),
+        biking_duration_ms: biking
+            .iter()
+            .filter_map(|session| session.moving_duration_ms)
+            .sum(),
+        gym_session_count: gym.len() as u32,
+    })
+}
+
+#[derive(Debug, Serialize)]
+pub struct ExportFile {
+    pub export_version: u32,
+    pub exported_at_ms: i64,
+    pub sessions: Vec<SessionRow>,
+    pub gym_sessions: Vec<GymSessionRow>,
+    pub weight_entries: Vec<WeightEntry>,
+}
+
+#[tauri::command]
+pub fn export_data(db: State<Db>, path: String) -> Result<(), CmdError> {
+    if path.trim().is_empty() {
+        return Err(CmdError::InvalidInput("export path cannot be empty"));
+    }
+
+    let ExportSnapshot {
+        sessions,
+        gym_sessions,
+        weight_entries,
+    } = db.export_snapshot()?;
+    let export = ExportFile {
+        export_version: 1,
+        exported_at_ms: now_ms(),
+        sessions,
+        gym_sessions,
+        weight_entries,
+    };
+    let payload =
+        serde_json::to_vec_pretty(&export).map_err(|error| CmdError::Export(error.to_string()))?;
+    std::fs::write(path, payload).map_err(|error| CmdError::Export(error.to_string()))?;
+    Ok(())
+}
+
 /// Compute the [from, to) bounds and display label for a week/month/year bucket
 /// anchored at `anchor_ms`. Shared by the running/biking and gym history commands.
 fn range_bounds(
@@ -364,6 +443,29 @@ pub fn get_gym_session(db: State<Db>, id: i64) -> Result<Option<GymSessionRow>, 
 #[tauri::command]
 pub fn delete_gym_session(db: State<Db>, id: i64) -> Result<(), CmdError> {
     db.delete_gym_session(id)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn create_weight_entry(
+    db: State<Db>,
+    weight_kg: f64,
+    logged_at_ms: Option<i64>,
+) -> Result<i64, CmdError> {
+    if !weight_kg.is_finite() || weight_kg <= 0.0 {
+        return Err(CmdError::InvalidInput("weight must be a positive number"));
+    }
+    Ok(db.create_weight_entry(logged_at_ms.unwrap_or_else(now_ms), weight_kg)?)
+}
+
+#[tauri::command]
+pub fn list_weight_entries(db: State<Db>, from_ms: i64) -> Result<Vec<WeightEntry>, CmdError> {
+    Ok(db.list_weight_entries(from_ms, now_ms())?)
+}
+
+#[tauri::command]
+pub fn delete_weight_entry(db: State<Db>, id: i64) -> Result<(), CmdError> {
+    db.delete_weight_entry(id)?;
     Ok(())
 }
 
