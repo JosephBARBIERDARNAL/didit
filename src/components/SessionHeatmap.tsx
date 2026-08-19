@@ -25,7 +25,9 @@ function describeActivities(activities: DayActivities | undefined): string {
   const descriptions = SPORT_ORDER.flatMap((sport) => {
     const count = activities?.[sport] ?? 0;
     if (count === 0) return [];
-    return [count === 1 ? SPORT_LABELS[sport] : `${SPORT_LABELS[sport]} (${count})`];
+    return [
+      count === 1 ? SPORT_LABELS[sport] : `${SPORT_LABELS[sport]} (${count})`,
+    ];
   });
   return descriptions.length > 0 ? descriptions.join(", ") : "No training";
 }
@@ -52,24 +54,18 @@ export function SessionHeatmap() {
     for (const year of years) {
       const anchorMs = new Date(year, 6, 1).getTime();
       fetches.push(
-        api
-          .listRange("year", anchorMs, "running")
-          .then((bucket) => ({
-            kind: "running",
-            timestamps: bucket.sessions.map((session) => session.started_at_ms),
-          })),
-        api
-          .listRange("year", anchorMs, "biking")
-          .then((bucket) => ({
-            kind: "biking",
-            timestamps: bucket.sessions.map((session) => session.started_at_ms),
-          })),
-        api
-          .listGymRange("year", anchorMs)
-          .then((bucket) => ({
-            kind: "gym",
-            timestamps: bucket.sessions.map((session) => session.logged_at_ms),
-          })),
+        api.listRange("year", anchorMs, "running").then((bucket) => ({
+          kind: "running",
+          timestamps: bucket.sessions.map((session) => session.started_at_ms),
+        })),
+        api.listRange("year", anchorMs, "biking").then((bucket) => ({
+          kind: "biking",
+          timestamps: bucket.sessions.map((session) => session.started_at_ms),
+        })),
+        api.listGymRange("year", anchorMs).then((bucket) => ({
+          kind: "gym",
+          timestamps: bucket.sessions.map((session) => session.logged_at_ms),
+        })),
       );
     }
 
@@ -153,7 +149,10 @@ export function SessionHeatmap() {
                   aria-hidden="true"
                 >
                   {sports.map((sport) => (
-                    <span key={sport} style={{ backgroundColor: SPORT_COLORS[sport] }} />
+                    <span
+                      key={sport}
+                      style={{ backgroundColor: SPORT_COLORS[sport] }}
+                    />
                   ))}
                 </div>
               )}
@@ -177,9 +176,6 @@ export function SessionHeatmap() {
           None
         </span>
       </div>
-      <p className="mt-1 text-right text-[10px] text-muted-foreground">
-        Mixed days use color bands.
-      </p>
     </div>
   );
 }

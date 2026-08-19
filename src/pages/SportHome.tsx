@@ -5,7 +5,6 @@ import { APPS, type AppKind } from "@/lib/apps";
 import { api } from "@/lib/api";
 import { formatInstallDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { SessionHeatmap } from "@/components/SessionHeatmap";
 
 export function SportHome() {
   const nav = useNavigate();
@@ -64,8 +63,6 @@ export function SportHome() {
             );
           })}
         </div>
-
-        <SessionHeatmap />
       </div>
     </>
   );

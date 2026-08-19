@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
+import { SessionHeatmap } from "@/components/SessionHeatmap";
 import { useNavigate } from "react-router-dom";
-import { save } from "@tauri-apps/plugin-dialog";
-import {
-  Activity,
-  Bike,
-  Download,
-  Dumbbell,
-  Footprints,
-  Scale,
-} from "lucide-react";
+import { Activity, Bike, Dumbbell, Footprints, Scale } from "lucide-react";
 import { api, type TrainingSummary } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -18,8 +11,7 @@ export function AppSelector() {
   const nav = useNavigate();
   const [summary, setSummary] = useState<TrainingSummary | null>(null);
   const [summaryError, setSummaryError] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [exportStatus] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -34,45 +26,12 @@ export function AppSelector() {
       });
   }, []);
 
-  async function onExport() {
-    if (exporting) return;
-    setExporting(true);
-    setExportStatus(null);
-    try {
-      const path = await save({
-        defaultPath: "didit-export.json",
-        filters: [{ name: "JSON", extensions: ["json"] }],
-      });
-      if (!path) return;
-      await api.exportData(path);
-      setExportStatus("Export saved");
-    } catch (error) {
-      console.error(error);
-      setExportStatus("Export failed");
-    } finally {
-      setExporting(false);
-    }
-  }
-
   return (
     <>
       <header className="mb-10 mt-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-4xl tracking-tight">didit</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your training dashboard
-          </p>
         </div>
-        <Button
-          onClick={onExport}
-          disabled={exporting}
-          size="sm"
-          variant="ghost"
-          className="-mr-2 mt-1 px-2 text-xs"
-        >
-          <Download className="h-4 w-4" />
-          {exporting ? "Exporting…" : "Export data"}
-        </Button>
       </header>
 
       {exportStatus && (
@@ -107,7 +66,6 @@ export function AppSelector() {
         <section>
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="font-display text-lg">Last 30 days</h2>
-            <span className="text-xs text-muted-foreground">Training time</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Stat
@@ -132,6 +90,8 @@ export function AppSelector() {
               }
             />
           </div>
+          <br />
+          <SessionHeatmap />
           {summaryError && (
             <p className="mt-3 text-xs text-destructive">
               Summary unavailable. Export data to help diagnose this device.
