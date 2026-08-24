@@ -7,22 +7,21 @@
 @layer base {
   :root {
     /* Brand palette */
-    --accent: 45 100% 50%;              /* #ffc300 yellow  */
+    --accent: 28 87% 68%; /* #f4a261 orange */
     --accent-foreground: 0 0% 0%;
-    --brand: 273 78% 35%;               /* #5a189a purple  */
+    --brand: 12 76% 61%; /* #e76f51 coral  */
     --brand-foreground: 0 0% 100%;
-    --sport-gym: 185 75% 38%;           /* teal */
 
     /* Neutrals */
-    --background: 0 0% 95%;             /* #f2f2f2 */
-    --foreground: 0 0% 0%;              /* #000000 */
+    --background: 0 0% 95%; /* #f2f2f2 */
+    --foreground: 0 0% 0%; /* #000000 */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 0%;
-    --muted: 0 0% 76%;                  /* #C2C2C2 */
+    --muted: 0 0% 76%; /* #C2C2C2 */
     --muted-foreground: 0 0% 30%;
     --border: 0 0% 85%;
     --input: 0 0% 90%;
-    --ring: 45 100% 50%;
+    --ring: 28 87% 68%;
 
     --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
@@ -35,7 +34,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body, #root {
+  html,
+  body,
+  #root {
     height: 100%;
     width: 100%;
   }
@@ -47,7 +48,11 @@
   }
 
   /* Disable text selection on UI chrome — feels app-native */
-  button, [role="button"], h1, h2, h3 {
+  button,
+  [role="button"],
+  h1,
+  h2,
+  h3 {
     user-select: none;
     -webkit-user-select: none;
   }
@@ -56,4 +61,69 @@
 /* Pause/resume tabular numerals for the running timer */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* The frog appears only after a completed run and keeps the celebration light. */
+.pride-frog-art {
+  transform-origin: 50% 100%;
+  animation: frog-bob 2.8s ease-in-out infinite;
+}
+
+.pride-frog-body,
+.pride-frog-eye,
+.pride-frog-smile {
+  position: absolute;
+  display: block;
+}
+
+.pride-frog-body {
+  left: 10px;
+  bottom: 2px;
+  width: 48px;
+  height: 33px;
+  border-radius: 50% 50% 42% 42%;
+  background: #74a942;
+}
+
+.pride-frog-eye {
+  top: 10px;
+  width: 14px;
+  height: 14px;
+  border: 3px solid #74a942;
+  border-radius: 50%;
+  background: #f5f1df;
+  box-shadow: inset 0 0 0 3px #1f2918;
+}
+
+.pride-frog-eye-left {
+  left: 13px;
+}
+
+.pride-frog-eye-right {
+  left: 41px;
+}
+
+.pride-frog-smile {
+  left: 25px;
+  bottom: 10px;
+  width: 18px;
+  height: 7px;
+  border-bottom: 2px solid #1f2918;
+  border-radius: 0 0 50% 50%;
+}
+
+@keyframes frog-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pride-frog-art {
+    animation: none;
+  }
 }

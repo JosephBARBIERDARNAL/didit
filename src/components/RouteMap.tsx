@@ -18,14 +18,15 @@ interface Props {
 }
 
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
 export function RouteMap({
   points,
   height = 220,
   live = false,
   className,
-  emptyLabel = "No track recorded",
+  emptyLabel = "Aucun parcours enregistré",
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -118,7 +119,7 @@ export function RouteMap({
     <div
       ref={containerRef}
       role="img"
-      aria-label={live ? "Live route map" : "Route map"}
+      aria-label={live ? "Carte du parcours en direct" : "Carte du parcours"}
       data-testid="route-map"
       className={`overflow-hidden rounded-lg border border-border bg-muted/20 ${className ?? ""}`}
       style={{ height }}

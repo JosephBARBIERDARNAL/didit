@@ -97,10 +97,10 @@ class LocationService : Service() {
         if (mgr.getNotificationChannel(CHANNEL_ID) != null) return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Run tracking",
+            "Suivi de course",
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "Persistent while a run is being recorded."
+            description = "Actif pendant l’enregistrement d’une course."
             setShowBadge(false)
         }
         mgr.createNotificationChannel(channel)
@@ -117,8 +117,8 @@ class LocationService : Service() {
         val pi = PendingIntent.getActivity(this, 0, openApp, piFlags)
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentTitle("Recording your run")
-            .setContentText("didit is tracking your location.")
+            .setContentTitle("Enregistrement de votre course")
+            .setContentText("didit suit votre position.")
             .setOngoing(true)
             .setSilent(true)
             .setContentIntent(pi)

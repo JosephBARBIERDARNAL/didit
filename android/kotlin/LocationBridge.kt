@@ -51,12 +51,6 @@ object LocationBridge {
         return ctx.packageManager.getPackageInfo(ctx.packageName, 0).lastUpdateTime
     }
 
-    @JvmStatic
-    fun installationInstalledAtMs(): Long {
-        val ctx = appContext ?: return 0L
-        return ctx.packageManager.getPackageInfo(ctx.packageName, 0).firstInstallTime
-    }
-
     // ─── JNI bindings (implemented in Rust) ──────────────────────────────
     @JvmStatic external fun nativeInit()
     @JvmStatic external fun onLocation(

@@ -22,36 +22,47 @@ export function formatPace(secPerKm: number | null | undefined): string {
   return `${m}:${s.toString().padStart(2, "0")}/km`;
 }
 
-export function formatSpeed(secPerKm: number | null | undefined): string {
-  const v = secPerKm ?? 0;
-  if (!Number.isFinite(v) || v <= 0) return "—";
-  const kmh = 3600 / v;
-  return `${kmh.toFixed(1)} km/h`;
-}
-
 export function formatDate(ms: number): string {
   const d = new Date(ms);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return d.toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
 }
 
 export function formatDateTime(ms: number): string {
   const d = new Date(ms);
-  return d.toLocaleString(undefined, {
-    month: "short", day: "numeric",
-    hour: "2-digit", minute: "2-digit",
+  return d.toLocaleString("fr-FR", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
+}
+
+export function formatRangeLabel(
+  range: "week" | "month" | "year",
+  fromMs: number,
+): string {
+  const d = new Date(fromMs);
+  if (range === "week") {
+    return `Semaine du ${d.toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+    })}`;
+  }
+  if (range === "month") {
+    return d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  }
+  return d.toLocaleDateString("fr-FR", { year: "numeric" });
 }
 
 export function formatInstallDate(ms: number): string {
   const d = new Date(ms);
-  const date = d.toLocaleDateString("en-GB", {
+  const date = d.toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
   });
-  const time = d.toLocaleTimeString("en-GB", {
+  const time = d.toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
   });
-  return `${date}, ${time}`;
+  return `${date} à ${time}`;
 }

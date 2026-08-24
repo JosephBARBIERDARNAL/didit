@@ -1,23 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Pause, Play, Square } from "lucide-react";
-import {
-  api,
-  onMetrics,
-  type ActivityKind,
-  type LiveMetrics,
-  type TrackPoint,
-} from "@/lib/api";
-import { ACTIVITY_CONFIG } from "@/lib/activities";
+import { api, onMetrics, type LiveMetrics, type TrackPoint } from "@/lib/api";
+import { RUNNING_CONFIG } from "@/lib/activities";
+import { usePride } from "@/components/PrideFrog";
 import { Button } from "@/components/ui/button";
 import { RouteMap } from "@/components/RouteMap";
-import { formatDistance, formatDuration, formatPace, formatSpeed } from "@/lib/format";
+import { formatDistance, formatDuration, formatPace } from "@/lib/format";
 
 export function ActivityTrack() {
-  const { activity } = useParams<{ activity: string }>();
-  const kind = activity as ActivityKind;
-  const config = ACTIVITY_CONFIG[kind];
+  const config = RUNNING_CONFIG;
   const nav = useNavigate();
+  const { celebrateRun } = usePride();
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null);
   const [points, setPoints] = useState<TrackPoint[]>([]);
   const [busy, setBusy] = useState(false);
@@ -43,9 +37,9 @@ export function ActivityTrack() {
   // If somehow we land here without an active session, send the user home.
   useEffect(() => {
     api.currentState().then((s) => {
-      if (s === "idle") nav(`/${kind}`, { replace: true });
+      if (s === "idle") nav("/running", { replace: true });
     });
-  }, [nav, kind]);
+  }, [nav]);
 
   async function onPause() {
     if (busy) return;
@@ -78,7 +72,8 @@ export function ActivityTrack() {
     setBusy(true);
     try {
       const detail = await api.stopSession();
-      nav(`/${kind}/summary/${detail.session.id}`, { replace: true });
+      celebrateRun();
+      nav(`/running/summary/${detail.session.id}`, { replace: true });
     } catch (e) {
       console.error(e);
       setBusy(false);
@@ -86,14 +81,11 @@ export function ActivityTrack() {
   }
 
   const isPaused = metrics?.state === "paused";
-  const metricLabel = config.metric === "pace" ? "Pace" : "Speed";
-  const formatMetric = config.metric === "pace" ? formatPace : formatSpeed;
-
   return (
     <div className="flex-1 flex flex-col">
       <header className="text-center mb-10">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          {isPaused ? "Paused" : config.trackingLabel}
+          {isPaused ? "En pause" : config.trackingLabel}
         </p>
       </header>
 
@@ -118,7 +110,7 @@ export function ActivityTrack() {
             label="Distance"
             value={formatDistance(metrics?.total_distance_m)}
           />
-          <Stat label={metricLabel} value={formatMetric(metrics?.avg_pace_s_per_km)} />
+          <Stat label="Allure" value={formatPace(metrics?.avg_pace_s_per_km)} />
         </div>
 
         <div className="w-full rounded-xl border border-border bg-card p-2">
@@ -126,7 +118,7 @@ export function ActivityTrack() {
             points={points}
             height={180}
             live
-            emptyLabel="Waiting for GPS"
+            emptyLabel="En attente du GPS"
           />
         </div>
       </div>
@@ -139,7 +131,7 @@ export function ActivityTrack() {
             size="lg"
             variant="primary"
           >
-            <Play className="h-5 w-5" /> Resume
+            <Play className="h-5 w-5" /> Reprendre
           </Button>
         ) : (
           <Button onClick={onPause} disabled={busy} size="lg" variant="primary">
@@ -147,7 +139,7 @@ export function ActivityTrack() {
           </Button>
         )}
         <Button onClick={onStop} disabled={busy} size="lg" variant="outline">
-          <Square className="h-5 w-5" /> Stop
+          <Square className="h-5 w-5" /> Arrêter
         </Button>
       </div>
     </div>

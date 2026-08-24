@@ -1,8 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { ActivityKind } from "@/lib/activities";
-
-export type { ActivityKind };
 
 export type SessionState = "idle" | "running" | "paused";
 
@@ -26,7 +23,6 @@ export interface SessionRow {
   avg_pace_s_per_km: number | null;
   elevation_gain_m: number | null;
   elevation_loss_m: number | null;
-  activity: ActivityKind;
 }
 
 export interface TrackPoint {
@@ -68,68 +64,38 @@ export interface HistoryBucket {
   session_count: number;
 }
 
-export interface GymSessionRow {
-  id: number;
-  logged_at_ms: number;
-  exercises: string[];
-}
-
-export interface GymHistoryBucket {
-  from_ms: number;
-  to_ms: number;
-  label: string;
-  sessions: GymSessionRow[];
-  session_count: number;
-}
-
-export interface WeightEntry {
-  id: number;
-  logged_at_ms: number;
-  weight_kg: number;
-}
-
-export interface TrainingSummary {
-  running_duration_ms: number;
-  biking_duration_ms: number;
-  gym_session_count: number;
-}
-
 export const api = {
   currentState: () => invoke<SessionState>("current_state"),
-  installationUpdatedAtMs: () => invoke<number | null>("installation_updated_at_ms"),
-  installationInstalledAtMs: () =>
-    invoke<number | null>("installation_installed_at_ms"),
+  installationUpdatedAtMs: () =>
+    invoke<number | null>("installation_updated_at_ms"),
   liveMetrics: () => invoke<LiveMetrics | null>("live_metrics"),
   livePoints: () => invoke<TrackPoint[] | null>("live_points"),
-  activeActivity: () => invoke<ActivityKind | null>("active_activity"),
-  startSession: (activity: ActivityKind) => invoke<number>("start_session", { activity }),
+  startSession: () => invoke<number>("start_session"),
   pauseSession: () => invoke<void>("pause_session"),
   resumeSession: () => invoke<void>("resume_session"),
   stopSession: () => invoke<SessionDetail>("stop_session"),
-  listRecent: (limit: number, activity: ActivityKind) =>
-    invoke<SessionRow[]>("list_recent", { limit, activity }),
-  listRange: (range: Range, anchorMs: number, activity: ActivityKind) =>
-    invoke<HistoryBucket>("list_range", { range, anchorMs, activity }),
-  trainingSummary: () => invoke<TrainingSummary>("training_summary"),
-  exportData: (path: string) => invoke<void>("export_data", { path }),
-  getSession: (id: number) => invoke<SessionDetail | null>("get_session", { id }),
+  listRecent: (limit: number) => invoke<SessionRow[]>("list_recent", { limit }),
+  listRange: (range: Range, anchorMs: number) =>
+    invoke<HistoryBucket>("list_range", { range, anchorMs }),
+  getSession: (id: number) =>
+    invoke<SessionDetail | null>("get_session", { id }),
   deleteSession: (id: number) => invoke<void>("delete_session", { id }),
-  devPushPoint: (lat: number, lng: number, altitude_m?: number, accuracy_m?: number) =>
-    invoke<void>("dev_push_point", { lat, lng, altitudeM: altitude_m, accuracyM: accuracy_m }),
-  createGymSession: (exercises: string[], loggedAtMs?: number) =>
-    invoke<number>("create_gym_session", { exercises, loggedAtMs }),
-  listRecentGym: (limit: number) => invoke<GymSessionRow[]>("list_recent_gym", { limit }),
-  listGymRange: (range: Range, anchorMs: number) =>
-    invoke<GymHistoryBucket>("list_gym_range", { range, anchorMs }),
-  getGymSession: (id: number) => invoke<GymSessionRow | null>("get_gym_session", { id }),
-  deleteGymSession: (id: number) => invoke<void>("delete_gym_session", { id }),
-  createWeightEntry: (weightKg: number, loggedAtMs?: number) =>
-    invoke<number>("create_weight_entry", { weightKg, loggedAtMs }),
-  listWeightEntries: (fromMs: number) =>
-    invoke<WeightEntry[]>("list_weight_entries", { fromMs }),
-  deleteWeightEntry: (id: number) => invoke<void>("delete_weight_entry", { id }),
+  devPushPoint: (
+    lat: number,
+    lng: number,
+    altitude_m?: number,
+    accuracy_m?: number,
+  ) =>
+    invoke<void>("dev_push_point", {
+      lat,
+      lng,
+      altitudeM: altitude_m,
+      accuracyM: accuracy_m,
+    }),
 };
 
-export function onMetrics(handler: (m: LiveMetrics) => void): Promise<UnlistenFn> {
+export function onMetrics(
+  handler: (m: LiveMetrics) => void,
+): Promise<UnlistenFn> {
   return listen<LiveMetrics>("metrics", (event) => handler(event.payload));
 }

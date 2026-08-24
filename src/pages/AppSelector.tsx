@@ -1,124 +1,40 @@
-import { useEffect, useState } from "react";
 import { SessionHeatmap } from "@/components/SessionHeatmap";
 import { useNavigate } from "react-router-dom";
-import { Activity, Bike, Dumbbell, Footprints, Scale } from "lucide-react";
-import { api, type TrainingSummary } from "@/lib/api";
-import { formatDuration } from "@/lib/format";
+import { Footprints } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export function AppSelector() {
   const nav = useNavigate();
-  const [summary, setSummary] = useState<TrainingSummary | null>(null);
-  const [summaryError, setSummaryError] = useState(false);
-  const [exportStatus] = useState<string | null>(null);
-
-  useEffect(() => {
-    api
-      .trainingSummary()
-      .then((value) => {
-        setSummary(value);
-        setSummaryError(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setSummaryError(true);
-      });
-  }, []);
 
   return (
     <>
       <header className="mb-10 mt-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-4xl tracking-tight">didit</h1>
+          <h1 className="font-display text-3xl tracking-tight">
+            boing boing
+            <br />
+            c'est la fête à la grenouille
+          </h1>
         </div>
       </header>
-
-      {exportStatus && (
-        <p
-          className="-mt-7 mb-5 text-right text-xs text-muted-foreground"
-          aria-live="polite"
-        >
-          {exportStatus}
-        </p>
-      )}
 
       <div className="flex-1 flex flex-col justify-center gap-8">
         <div className="flex flex-col gap-4">
           <Button
-            onClick={() => nav("/sport")}
+            onClick={() => nav("/running")}
             size="xl"
             variant="primary"
             className="w-full font-display text-xl"
           >
-            <Activity className="h-6 w-6" /> Sport
-          </Button>
-          <Button
-            onClick={() => nav("/weight")}
-            size="xl"
-            variant="secondary"
-            className="w-full font-display text-xl"
-          >
-            <Scale className="h-6 w-6" /> Weight
+            <Footprints className="h-6 w-6" /> Commencer une course
           </Button>
         </div>
+        <br />
 
         <section>
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="font-display text-lg">Last 30 days</h2>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Stat
-              icon={Footprints}
-              label="Running"
-              value={
-                summary ? formatDuration(summary.running_duration_ms) : "—"
-              }
-            />
-            <Stat
-              icon={Bike}
-              label="Biking"
-              value={summary ? formatDuration(summary.biking_duration_ms) : "—"}
-            />
-            <Stat
-              icon={Dumbbell}
-              label="Gym"
-              value={
-                summary
-                  ? `${summary.gym_session_count} session${summary.gym_session_count === 1 ? "" : "s"}`
-                  : "—"
-              }
-            />
-          </div>
-          <br />
           <SessionHeatmap />
-          {summaryError && (
-            <p className="mt-3 text-xs text-destructive">
-              Summary unavailable. Export data to help diagnose this device.
-            </p>
-          )}
         </section>
       </div>
     </>
-  );
-}
-
-function Stat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Footprints;
-  label: string;
-  value: string;
-}) {
-  return (
-    <Card className="p-3">
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
-        <span className="text-[10px] uppercase tracking-widest">{label}</span>
-      </div>
-      <div className="mt-2 font-display text-sm tabular-nums">{value}</div>
-    </Card>
   );
 }

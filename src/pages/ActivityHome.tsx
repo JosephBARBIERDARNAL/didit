@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, Home, Play } from "lucide-react";
-import { api, type ActivityKind, type SessionRow } from "@/lib/api";
-import { ACTIVITY_CONFIG } from "@/lib/activities";
+import { api, type SessionRow } from "@/lib/api";
+import { RUNNING_CONFIG } from "@/lib/activities";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -11,13 +11,10 @@ import {
   formatDistance,
   formatDuration,
   formatPace,
-  formatSpeed,
 } from "@/lib/format";
 
 export function ActivityHome() {
-  const { activity } = useParams<{ activity: string }>();
-  const kind = activity as ActivityKind;
-  const config = ACTIVITY_CONFIG[kind];
+  const config = RUNNING_CONFIG;
   const nav = useNavigate();
   const [recent, setRecent] = useState<SessionRow[]>([]);
   const [installationUpdatedAtMs, setInstallationUpdatedAtMs] = useState<
@@ -30,26 +27,23 @@ export function ActivityHome() {
       .installationUpdatedAtMs()
       .then(setInstallationUpdatedAtMs)
       .catch(console.error);
-    api.listRecent(5, kind).then(setRecent).catch(console.error);
-    // Resume into active tracking if this activity has a session already running.
-    api.activeActivity().then((a) => {
-      if (a === kind) nav(`/${kind}/track`, { replace: true });
+    api.listRecent(5).then(setRecent).catch(console.error);
+    api.currentState().then((state) => {
+      if (state !== "idle") nav("/running/track", { replace: true });
     });
-  }, [nav, kind]);
+  }, [nav]);
 
   async function onStart() {
     if (starting) return;
     setStarting(true);
     try {
-      await api.startSession(kind);
-      nav(`/${kind}/track`);
+      await api.startSession();
+      nav("/running/track");
     } catch (e) {
       console.error(e);
       setStarting(false);
     }
   }
-
-  const formatMetric = config.metric === "pace" ? formatPace : formatSpeed;
 
   return (
     <>
@@ -67,7 +61,7 @@ export function ActivityHome() {
         <Link
           to="/"
           className="p-2 -m-2 text-muted-foreground hover:text-foreground"
-          aria-label="All apps"
+          aria-label="Accueil"
         >
           <Home className="h-5 w-5" />
         </Link>
@@ -83,26 +77,26 @@ export function ActivityHome() {
       </Button>
 
       <div className="flex items-baseline justify-between mb-3">
-        <h2 className="font-display text-lg">Recent</h2>
+        <h2 className="font-display text-lg">Courses récentes</h2>
         <Link
-          to={`/${kind}/history`}
+          to="/running/history"
           className="text-sm text-brand hover:underline inline-flex items-center gap-1"
         >
-          History <ChevronRight className="h-4 w-4" />
+          Historique <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
 
       {recent.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">
-          No {config.nounPlural.toLowerCase()} yet. Tap "{config.verb}" to
-          record your first.
+          Aucune course pour le moment. Appuie sur « {config.verb} » pour
+          enregistrer ta première.
         </Card>
       ) : (
         <ul className="space-y-2">
           {recent.map((s) => (
             <li key={s.id}>
               <Link
-                to={`/${kind}/summary/${s.id}`}
+                to={`/running/summary/${s.id}`}
                 className="block rounded-xl border border-border bg-card px-4 py-3 hover:border-muted transition-colors"
               >
                 <div className="flex items-baseline justify-between">
@@ -115,7 +109,7 @@ export function ActivityHome() {
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground tabular-nums">
                   <span>{formatDuration(s.moving_duration_ms ?? 0)}</span>
-                  <span>{formatMetric(s.avg_pace_s_per_km)}</span>
+                  <span>{formatPace(s.avg_pace_s_per_km)}</span>
                 </div>
               </Link>
             </li>
