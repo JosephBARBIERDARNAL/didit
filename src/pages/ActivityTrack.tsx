@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pause, Play, Square } from "lucide-react";
-import {
-  api,
-  onMetrics,
-  type LiveMetrics,
-  type TrackPoint,
-} from "@/lib/api";
+import { api, onMetrics, type LiveMetrics, type TrackPoint } from "@/lib/api";
 import { RUNNING_CONFIG } from "@/lib/activities";
 import { usePride } from "@/components/PrideFrog";
 import { Button } from "@/components/ui/button";

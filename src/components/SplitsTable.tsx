@@ -8,7 +8,9 @@ interface Props {
 export function SplitsTable({ splits }: Props) {
   if (splits.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">Aucun kilomètre complet sur cette course.</p>
+      <p className="text-sm text-muted-foreground">
+        Aucun kilomètre complet sur cette course.
+      </p>
     );
   }
 
@@ -30,7 +32,9 @@ export function SplitsTable({ splits }: Props) {
             return (
               <tr key={s.km_index} className="border-t border-border">
                 <td className="px-4 py-2 font-medium">{s.km_index}</td>
-                <td className={`px-4 py-2 text-right tabular-nums ${isFastest ? "text-brand font-semibold" : ""}`}>
+                <td
+                  className={`px-4 py-2 text-right tabular-nums ${isFastest ? "text-brand font-semibold" : ""}`}
+                >
                   {formatDuration(s.duration_ms)}
                 </td>
                 <td className="px-4 py-2 text-right text-muted-foreground">

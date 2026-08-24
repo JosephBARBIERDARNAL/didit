@@ -33,8 +33,18 @@ export function ElevationChart({ points, height = 80 }: Props) {
     .join(" ");
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke="hsl(var(--brand))" strokeWidth={2} />
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width="100%"
+      height={h}
+      preserveAspectRatio="none"
+    >
+      <polyline
+        points={pts}
+        fill="none"
+        stroke="hsl(var(--brand))"
+        strokeWidth={2}
+      />
     </svg>
   );
 }

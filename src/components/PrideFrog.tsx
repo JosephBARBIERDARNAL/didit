@@ -1,8 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import {
-  getRandomPrideMessage,
-  type PrideMessage,
-} from "@/lib/prideMessages";
+import { getRandomPrideMessage, type PrideMessage } from "@/lib/prideMessages";
 
 type PrideContextValue = {
   message: PrideMessage | null;
@@ -51,7 +48,10 @@ export function PrideFrog() {
         <span className="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 border-b border-r border-brand/15 bg-card" />
       </div>
 
-      <div className="pride-frog-art absolute bottom-0 right-5 h-[50px] w-[68px]" aria-hidden="true">
+      <div
+        className="pride-frog-art absolute bottom-0 right-5 h-[50px] w-[68px]"
+        aria-hidden="true"
+      >
         <span className="pride-frog-body" />
         <span className="pride-frog-eye pride-frog-eye-left" />
         <span className="pride-frog-eye pride-frog-eye-right" />

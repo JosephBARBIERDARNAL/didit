@@ -4,7 +4,7 @@ import { fr } from "date-fns/locale/fr";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
-const WEEKS = 16;
+const WEEKS = 12;
 const DAY_KEY = "yyyy-MM-dd";
 const DAY_LABELS = ["L", "M", "M", "J", "V", "S", "D"];
 
@@ -44,7 +44,7 @@ export function SessionHeatmap() {
 
   return (
     <div>
-      <div className="mb-1 grid grid-cols-[42px_repeat(7,minmax(0,1fr))] gap-[3px] text-center text-[13px] text-muted-foreground">
+      <div className="mb-1 grid grid-cols-[32px_repeat(7,minmax(0,1fr))] gap-[3px] text-center text-[18px] text-muted-foreground">
         <span aria-hidden="true" />
         {DAY_LABELS.map((label, index) => (
           <span key={`${label}-${index}`}>{label}</span>
@@ -52,8 +52,9 @@ export function SessionHeatmap() {
       </div>
 
       <div className="space-y-[3px]">
-        {Array.from({ length: WEEKS }, (_, weekIndex) => {
-          const weekStart = addDays(gridStart, weekIndex * 7);
+        {Array.from({ length: WEEKS }, (_, weekIndex) =>
+          addDays(gridStart, weekIndex * 7),
+        ).reverse().map((weekStart, weekIndex) => {
           const monthLabel =
             weekIndex === 0 || weekStart.getDate() <= 7
               ? format(weekStart, "MMM", { locale: fr })
@@ -61,10 +62,10 @@ export function SessionHeatmap() {
 
           return (
             <div
-              key={weekIndex}
+              key={weekStart.getTime()}
               className="grid grid-cols-[42px_repeat(7,minmax(0,1fr))] gap-[3px]"
             >
-              <span className="flex items-center text-[13px] text-muted-foreground">
+              <span className="flex items-center text-[18px] text-muted-foreground">
                 {monthLabel}
               </span>
 

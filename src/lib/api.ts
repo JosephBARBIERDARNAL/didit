@@ -66,7 +66,8 @@ export interface HistoryBucket {
 
 export const api = {
   currentState: () => invoke<SessionState>("current_state"),
-  installationUpdatedAtMs: () => invoke<number | null>("installation_updated_at_ms"),
+  installationUpdatedAtMs: () =>
+    invoke<number | null>("installation_updated_at_ms"),
   liveMetrics: () => invoke<LiveMetrics | null>("live_metrics"),
   livePoints: () => invoke<TrackPoint[] | null>("live_points"),
   startSession: () => invoke<number>("start_session"),
@@ -76,12 +77,25 @@ export const api = {
   listRecent: (limit: number) => invoke<SessionRow[]>("list_recent", { limit }),
   listRange: (range: Range, anchorMs: number) =>
     invoke<HistoryBucket>("list_range", { range, anchorMs }),
-  getSession: (id: number) => invoke<SessionDetail | null>("get_session", { id }),
+  getSession: (id: number) =>
+    invoke<SessionDetail | null>("get_session", { id }),
   deleteSession: (id: number) => invoke<void>("delete_session", { id }),
-  devPushPoint: (lat: number, lng: number, altitude_m?: number, accuracy_m?: number) =>
-    invoke<void>("dev_push_point", { lat, lng, altitudeM: altitude_m, accuracyM: accuracy_m }),
+  devPushPoint: (
+    lat: number,
+    lng: number,
+    altitude_m?: number,
+    accuracy_m?: number,
+  ) =>
+    invoke<void>("dev_push_point", {
+      lat,
+      lng,
+      altitudeM: altitude_m,
+      accuracyM: accuracy_m,
+    }),
 };
 
-export function onMetrics(handler: (m: LiveMetrics) => void): Promise<UnlistenFn> {
+export function onMetrics(
+  handler: (m: LiveMetrics) => void,
+): Promise<UnlistenFn> {
   return listen<LiveMetrics>("metrics", (event) => handler(event.payload));
 }

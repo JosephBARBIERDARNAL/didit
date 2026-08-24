@@ -7,17 +7,17 @@
 @layer base {
   :root {
     /* Brand palette */
-    --accent: 28 87% 68%;               /* #f4a261 orange */
+    --accent: 28 87% 68%; /* #f4a261 orange */
     --accent-foreground: 0 0% 0%;
-    --brand: 12 76% 61%;                /* #e76f51 coral  */
+    --brand: 12 76% 61%; /* #e76f51 coral  */
     --brand-foreground: 0 0% 100%;
 
     /* Neutrals */
-    --background: 0 0% 95%;             /* #f2f2f2 */
-    --foreground: 0 0% 0%;              /* #000000 */
+    --background: 0 0% 95%; /* #f2f2f2 */
+    --foreground: 0 0% 0%; /* #000000 */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 0%;
-    --muted: 0 0% 76%;                  /* #C2C2C2 */
+    --muted: 0 0% 76%; /* #C2C2C2 */
     --muted-foreground: 0 0% 30%;
     --border: 0 0% 85%;
     --input: 0 0% 90%;
@@ -34,7 +34,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body, #root {
+  html,
+  body,
+  #root {
     height: 100%;
     width: 100%;
   }
@@ -46,7 +48,11 @@
   }
 
   /* Disable text selection on UI chrome — feels app-native */
-  button, [role="button"], h1, h2, h3 {
+  button,
+  [role="button"],
+  h1,
+  h2,
+  h3 {
     user-select: none;
     -webkit-user-select: none;
   }
@@ -107,8 +113,13 @@
 }
 
 @keyframes frog-bob {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-3px) rotate(2deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(2deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

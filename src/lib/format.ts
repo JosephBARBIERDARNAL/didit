@@ -30,8 +30,10 @@ export function formatDate(ms: number): string {
 export function formatDateTime(ms: number): string {
   const d = new Date(ms);
   return d.toLocaleString("fr-FR", {
-    month: "short", day: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 

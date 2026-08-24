@@ -99,7 +99,11 @@ export function ActivitySummary() {
       </Card>
 
       <div className="mt-6">
-        <Button onClick={() => nav("/running")} className="w-full" variant="outline">
+        <Button
+          onClick={() => nav("/running")}
+          className="w-full"
+          variant="outline"
+        >
           Terminé
         </Button>
       </div>

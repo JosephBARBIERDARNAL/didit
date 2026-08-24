@@ -94,13 +94,17 @@ export function ActivityHistory() {
             label="Temps"
             value={formatDuration(bucket.total_moving_duration_ms)}
           />
-          <Stat label={config.nounPlural} value={bucket.session_count.toString()} />
+          <Stat
+            label={config.nounPlural}
+            value={bucket.session_count.toString()}
+          />
         </div>
       )}
 
       {bucket && bucket.sessions.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">
-          Aucune course pendant cette {range === "week" ? "semaine" : range === "month" ? "mois" : "année"}.
+          Aucune course pendant cette{" "}
+          {range === "week" ? "semaine" : range === "month" ? "mois" : "année"}.
         </Card>
       ) : (
         <ul className="space-y-2">

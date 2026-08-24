@@ -10,7 +10,11 @@ export function AppSelector() {
     <>
       <header className="mb-10 mt-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-4xl tracking-tight">didit</h1>
+          <h1 className="font-display text-3xl tracking-tight">
+            boing boing
+            <br />
+            c'est la fête à la grenouille
+          </h1>
         </div>
       </header>
 
@@ -25,9 +29,9 @@ export function AppSelector() {
             <Footprints className="h-6 w-6" /> Commencer une course
           </Button>
         </div>
+        <br />
 
         <section>
-          <h2 className="mb-3 font-display text-lg">Rythme de course</h2>
           <SessionHeatmap />
         </section>
       </div>

@@ -32,7 +32,7 @@ android-init:
 android-dev:
     npm run tauri -- android dev
 
-# Build a release APK. Configure release signing before installing this one.
+# Build a release APK.
 android-apk:
     npm run tauri -- android build --apk
 
