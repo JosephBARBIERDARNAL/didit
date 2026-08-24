@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { api, type ActivityKind, type SessionDetail } from "@/lib/api";
-import { ACTIVITY_CONFIG } from "@/lib/activities";
+import { api, type SessionDetail } from "@/lib/api";
+import { RUNNING_CONFIG } from "@/lib/activities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ElevationChart } from "@/components/ElevationChart";
@@ -13,13 +13,11 @@ import {
   formatDistance,
   formatDuration,
   formatPace,
-  formatSpeed,
 } from "@/lib/format";
 
 export function ActivitySummary() {
-  const { activity, id } = useParams<{ activity: string; id: string }>();
-  const kind = activity as ActivityKind;
-  const config = ACTIVITY_CONFIG[kind];
+  const { id } = useParams<{ id: string }>();
+  const config = RUNNING_CONFIG;
   const nav = useNavigate();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
 
@@ -30,32 +28,29 @@ export function ActivitySummary() {
 
   async function onDelete() {
     if (!detail) return;
-    if (!confirm(`Delete this ${config.noun}?`)) return;
+    if (!confirm(`Supprimer cette ${config.noun} ?`)) return;
     await api.deleteSession(detail.session.id);
-    nav(`/${kind}`, { replace: true });
+    nav("/running", { replace: true });
   }
 
   if (!detail) {
-    return <p className="text-muted-foreground">Loading…</p>;
+    return <p className="text-muted-foreground">Chargement…</p>;
   }
 
   const s = detail.session;
-  const metricLabel = config.metric === "pace" ? "Avg pace" : "Avg speed";
-  const formatMetric = config.metric === "pace" ? formatPace : formatSpeed;
-
   return (
     <>
       <header className="flex items-center justify-between mb-5">
         <Link
-          to={`/${kind}`}
+          to="/running"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Home
+          <ArrowLeft className="h-4 w-4 mr-1" /> Accueil
         </Link>
         <button
           onClick={onDelete}
           className="text-muted-foreground hover:text-destructive mt-4"
-          aria-label="Delete"
+          aria-label="Supprimer"
         >
           <Trash2 className="h-5 w-5" />
         </button>
@@ -76,27 +71,27 @@ export function ActivitySummary() {
       </Card>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <Stat label={metricLabel} value={formatMetric(s.avg_pace_s_per_km)} />
+        <Stat label="Allure moyenne" value={formatPace(s.avg_pace_s_per_km)} />
         <Stat
-          label="Moving time"
+          label="Temps en mouvement"
           value={formatDuration(s.moving_duration_ms ?? 0)}
         />
         <Stat
-          label="Total time"
+          label="Temps total"
           value={formatDuration(s.total_duration_ms ?? 0)}
         />
         <Stat
-          label="Elevation"
+          label="Dénivelé"
           value={`↑${(s.elevation_gain_m ?? 0).toFixed(0)} ↓${(s.elevation_loss_m ?? 0).toFixed(0)} m`}
         />
       </div>
 
-      <h2 className="font-display text-lg mb-2">Splits</h2>
+      <h2 className="font-display text-lg mb-2">Kilomètres</h2>
       <div className="mb-6">
         <SplitsTable splits={detail.splits} />
       </div>
 
-      <h2 className="font-display text-lg mb-2">Elevation</h2>
+      <h2 className="font-display text-lg mb-2">Dénivelé</h2>
       <Card>
         <CardContent>
           <ElevationChart points={detail.points} />
@@ -104,8 +99,8 @@ export function ActivitySummary() {
       </Card>
 
       <div className="mt-6">
-        <Button onClick={() => nav(`/${kind}`)} className="w-full" variant="outline">
-          Done
+        <Button onClick={() => nav("/running")} className="w-full" variant="outline">
+          Terminé
         </Button>
       </div>
     </>

@@ -18,7 +18,6 @@ use crate::session::SessionStore;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
         .manage(SessionStore::new())
         .setup(|app| {
             // Open SQLite in the app's local data directory.
@@ -48,29 +47,17 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::current_state,
             commands::installation_updated_at_ms,
-            commands::installation_installed_at_ms,
             commands::live_metrics,
             commands::live_points,
-            commands::active_activity,
             commands::start_session,
             commands::pause_session,
             commands::resume_session,
             commands::stop_session,
             commands::list_recent,
             commands::list_range,
-            commands::training_summary,
-            commands::export_data,
             commands::get_session,
             commands::delete_session,
             commands::dev_push_point,
-            commands::create_gym_session,
-            commands::list_recent_gym,
-            commands::list_gym_range,
-            commands::get_gym_session,
-            commands::delete_gym_session,
-            commands::create_weight_entry,
-            commands::list_weight_entries,
-            commands::delete_weight_entry,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

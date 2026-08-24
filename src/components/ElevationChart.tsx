@@ -13,7 +13,7 @@ export function ElevationChart({ points, height = 80 }: Props) {
   if (alts.length < 3) {
     return (
       <div className="text-xs text-muted-foreground py-3 text-center">
-        No elevation data
+        Aucune donnée de dénivelé
       </div>
     );
   }

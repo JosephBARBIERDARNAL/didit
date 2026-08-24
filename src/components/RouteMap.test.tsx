@@ -59,14 +59,14 @@ describe("RouteMap", () => {
   it("shows an empty state until there are two active points", () => {
     render(<RouteMap points={[point(48.8566, 2.3522)]} />);
 
-    expect(screen.getByTestId("route-map-empty")).toHaveTextContent("No track recorded");
+    expect(screen.getByTestId("route-map-empty")).toHaveTextContent("Aucun parcours enregistré");
     expect(leaflet.map).not.toHaveBeenCalled();
   });
 
   it("renders an OSM map with a route and markers", async () => {
     render(<RouteMap points={[point(48.8566, 2.3522), point(48.857, 2.353)]} />);
 
-    expect(screen.getByRole("img", { name: "Route map" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Carte du parcours" })).toBeInTheDocument();
     await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1));
     expect(leaflet.tileLayer).toHaveBeenCalledWith(
       "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -107,6 +107,6 @@ describe("RouteMap", () => {
   it("uses the live route accessible name", () => {
     render(<RouteMap points={[point(48.8566, 2.3522), point(48.857, 2.353)]} live />);
 
-    expect(screen.getByRole("img", { name: "Live route map" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Carte du parcours en direct" })).toBeInTheDocument();
   });
 });

@@ -17,27 +17,10 @@ pub enum SessionState {
     Paused,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ActivityKind {
-    Running,
-    Biking,
-}
-
-impl ActivityKind {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            ActivityKind::Running => "running",
-            ActivityKind::Biking => "biking",
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct ActiveSession {
     pub id: i64,
     pub started_at_ms: i64,
-    pub activity: ActivityKind,
     pub state: SessionState,
     pub points: Vec<TrackPoint>,
     pub pauses: Vec<PauseInterval>,
@@ -75,10 +58,6 @@ impl SessionStore {
             .lock()
             .as_ref()
             .map_or(SessionState::Idle, |s| s.state)
-    }
-
-    pub fn active_activity(&self) -> Option<ActivityKind> {
-        self.inner.lock().as_ref().map(|s| s.activity)
     }
 
     /// Compute live metrics for the running session, or None if idle.
@@ -130,6 +109,7 @@ impl SessionStore {
 
     /// Flush any points buffered since the last periodic flush. Used when the
     /// foreground service is stopped before reaching the next ~10-point batch.
+    #[cfg_attr(not(target_os = "android"), allow(dead_code))]
     pub fn flush_remaining(&self, db: &Db) {
         let mut guard = self.inner.lock();
         let Some(s) = guard.as_mut() else { return };

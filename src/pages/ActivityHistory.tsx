@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import { api, type ActivityKind, type HistoryBucket, type Range } from "@/lib/api";
-import { ACTIVITY_CONFIG } from "@/lib/activities";
+import { api, type HistoryBucket, type Range } from "@/lib/api";
+import { RUNNING_CONFIG } from "@/lib/activities";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -10,20 +10,18 @@ import {
   formatDistance,
   formatDuration,
   formatPace,
-  formatSpeed,
+  formatRangeLabel,
 } from "@/lib/format";
 
 export function ActivityHistory() {
-  const { activity } = useParams<{ activity: string }>();
-  const kind = activity as ActivityKind;
-  const config = ACTIVITY_CONFIG[kind];
+  const config = RUNNING_CONFIG;
   const [range, setRange] = useState<Range>("week");
   const [anchorMs, setAnchorMs] = useState<number>(Date.now());
   const [bucket, setBucket] = useState<HistoryBucket | null>(null);
 
   useEffect(() => {
-    api.listRange(range, anchorMs, kind).then(setBucket).catch(console.error);
-  }, [range, anchorMs, kind]);
+    api.listRange(range, anchorMs).then(setBucket).catch(console.error);
+  }, [range, anchorMs]);
 
   function shift(forward: boolean) {
     const d = new Date(anchorMs);
@@ -41,18 +39,16 @@ export function ActivityHistory() {
     setAnchorMs(d.getTime());
   }
 
-  const formatMetric = config.metric === "pace" ? formatPace : formatSpeed;
-
   return (
     <>
       <header className="flex items-center justify-between mb-5">
         <Link
-          to={`/${kind}`}
+          to="/running"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Home
+          <ArrowLeft className="h-4 w-4 mr-1" /> Accueil
         </Link>
-        <h1 className="font-display text-lg">History</h1>
+        <h1 className="font-display text-lg">Historique</h1>
         <span className="w-12" />
       </header>
 
@@ -62,9 +58,9 @@ export function ActivityHistory() {
         className="mb-5"
       >
         <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="week">Week</TabsTrigger>
-          <TabsTrigger value="month">Month</TabsTrigger>
-          <TabsTrigger value="year">Year</TabsTrigger>
+          <TabsTrigger value="week">Semaine</TabsTrigger>
+          <TabsTrigger value="month">Mois</TabsTrigger>
+          <TabsTrigger value="year">Année</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -72,15 +68,17 @@ export function ActivityHistory() {
         <button
           onClick={() => shift(false)}
           className="p-2 text-muted-foreground hover:text-foreground"
-          aria-label="Previous"
+          aria-label="Précédent"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <p className="font-display text-base">{bucket?.label ?? "—"}</p>
+        <p className="font-display text-base">
+          {bucket ? formatRangeLabel(range, bucket.from_ms) : "—"}
+        </p>
         <button
           onClick={() => shift(true)}
           className="p-2 text-muted-foreground hover:text-foreground"
-          aria-label="Next"
+          aria-label="Suivant"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -93,7 +91,7 @@ export function ActivityHistory() {
             value={formatDistance(bucket.total_distance_m)}
           />
           <Stat
-            label="Time"
+            label="Temps"
             value={formatDuration(bucket.total_moving_duration_ms)}
           />
           <Stat label={config.nounPlural} value={bucket.session_count.toString()} />
@@ -102,14 +100,14 @@ export function ActivityHistory() {
 
       {bucket && bucket.sessions.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">
-          No {config.nounPlural.toLowerCase()} in this {range}.
+          Aucune course pendant cette {range === "week" ? "semaine" : range === "month" ? "mois" : "année"}.
         </Card>
       ) : (
         <ul className="space-y-2">
           {bucket?.sessions.map((s) => (
             <li key={s.id}>
               <Link
-                to={`/${kind}/summary/${s.id}`}
+                to={`/running/summary/${s.id}`}
                 className="block rounded-xl border border-border bg-card px-4 py-3 hover:border-muted transition-colors"
               >
                 <div className="flex items-baseline justify-between">
@@ -122,7 +120,7 @@ export function ActivityHistory() {
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground tabular-nums">
                   <span>{formatDuration(s.moving_duration_ms ?? 0)}</span>
-                  <span>{formatMetric(s.avg_pace_s_per_km)}</span>
+                  <span>{formatPace(s.avg_pace_s_per_km)}</span>
                 </div>
               </Link>
             </li>

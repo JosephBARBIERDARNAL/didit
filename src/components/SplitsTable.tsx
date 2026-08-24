@@ -8,7 +8,7 @@ interface Props {
 export function SplitsTable({ splits }: Props) {
   if (splits.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">No full kilometres in this run.</p>
+      <p className="text-sm text-muted-foreground">Aucun kilomètre complet sur cette course.</p>
     );
   }
 
@@ -20,7 +20,7 @@ export function SplitsTable({ splits }: Props) {
         <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-4 py-2 text-left">Km</th>
-            <th className="px-4 py-2 text-right">Time</th>
+            <th className="px-4 py-2 text-right">Temps</th>
             <th className="px-4 py-2 text-right">↑ m</th>
           </tr>
         </thead>

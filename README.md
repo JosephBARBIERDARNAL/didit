@@ -1,6 +1,6 @@
 # didit
 
-A personal, **local-only** sport (run, bike and gym) tracker for Android. Zero account, cloud, or analytics.
+A personal, **local-only** running tracker for Android. Zero account, cloud, or analytics.
 
 <img src="image.png" alt="Description" width="200">
 
