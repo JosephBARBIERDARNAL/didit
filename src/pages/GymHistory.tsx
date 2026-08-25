@@ -97,7 +97,8 @@ export function GymHistory() {
                     {formatDate(s.logged_at_ms)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {s.exercises.length} exercise{s.exercises.length === 1 ? "" : "s"}
+                    {s.exercises.length} exercise
+                    {s.exercises.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground truncate">

@@ -18,6 +18,12 @@ function decimalsForStep(step: number) {
   return Math.max(0, Math.ceil(-Math.log10(step)));
 }
 
+function startOfDayMs(ms: number) {
+  const date = new Date(ms);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+}
+
 export function WeightChart({ entries, height = 250 }: Props) {
   const points = [...entries].sort(
     (a, b) => a.logged_at_ms - b.logged_at_ms || a.id - b.id,
@@ -56,14 +62,18 @@ export function WeightChart({ entries, height = 250 }: Props) {
   const tickCount = Math.round(scaleRange / step) + 1;
   const tickDecimals = decimalsForStep(step);
   const formatScaleValue = (value: number) => value.toFixed(tickDecimals);
-  const xForIndex = (index: number) =>
-    points.length === 1
+  const startDayMs = startOfDayMs(points[0].logged_at_ms);
+  const endDayMs = startOfDayMs(points[points.length - 1].logged_at_ms);
+  const dayRangeMs = endDayMs - startDayMs;
+  const xForTimestamp = (timestampMs: number) =>
+    dayRangeMs === 0
       ? plotLeft + plotWidth / 2
-      : plotLeft + (index / (points.length - 1)) * plotWidth;
+      : plotLeft +
+        ((startOfDayMs(timestampMs) - startDayMs) / dayRangeMs) * plotWidth;
   const yForWeight = (weight: number) =>
     plotBottom - ((weight - scaleMin) / scaleRange) * plotHeight;
-  const coords = points.map((point, index) => ({
-    x: xForIndex(index),
+  const coords = points.map((point) => ({
+    x: xForTimestamp(point.logged_at_ms),
     y: yForWeight(point.weight_kg),
     point,
   }));

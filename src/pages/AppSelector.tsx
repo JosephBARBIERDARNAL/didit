@@ -113,12 +113,12 @@ function Stat({
   value: string;
 }) {
   return (
-    <Card className="p-3">
+    <Card className="p-2.5">
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[10px] uppercase tracking-widest">{label}</span>
       </div>
-      <div className="mt-2 font-display text-sm tabular-nums">{value}</div>
+      <div className="mt-2 font-display text-xs tabular-nums">{value}</div>
     </Card>
   );
 }
